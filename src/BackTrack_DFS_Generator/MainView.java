@@ -1,3 +1,5 @@
+package BackTrack_DFS_Generator;
+
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -15,8 +17,8 @@ public class MainView extends Application {
 
     Color unchecked = Color.rgb(150, 150, 150),
           currentlyChecking = Color.rgb(150, 150, 255),
-          alreadyChecked = Color.rgb(100, 100, 175),
-          previouslyChecked = Color.rgb(75, 125, 75);
+          alreadyChecked = Color.rgb(100, 150, 100),
+          previouslyChecked = Color.rgb(100, 100, 175);
 
     Stack<Node> stack;
     Node[][] nodes = new Node[60][125];

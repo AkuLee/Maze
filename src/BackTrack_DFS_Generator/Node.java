@@ -1,3 +1,5 @@
+package BackTrack_DFS_Generator;
+
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -25,7 +27,7 @@ public class Node {
         context.setFill(boxColor);
         context.fillRect(thisX, thisY, length, length);
 
-        context.setStroke(Color.rgb(220, 220, 220));
+        context.setStroke(Color.rgb(65, 75, 125));
         if (walls[0]) { // top
             context.strokeLine(thisX, thisY, thisX + length, thisY);
         }
