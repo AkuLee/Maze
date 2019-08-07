@@ -10,3 +10,7 @@ How to run the game:
     Enter this in the command line in the {path-to-src}\src:
 
         java --module-path {path-to-javafx-lib}\lib --add-modules javafx.controls BackTrack_DFS_Gen.MainView
+
+
+Source to backtracking and DFS algorithm
+    https://en.wikipedia.org/wiki/Maze_generation_algorithm
