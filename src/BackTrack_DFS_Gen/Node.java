@@ -1,4 +1,4 @@
-package BackTrack_DFS_Generator;
+package BackTrack_DFS_Gen;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
