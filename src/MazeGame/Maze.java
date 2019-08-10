@@ -1,16 +1,17 @@
-package BackTrack_DFS_Gen;
+package MazeGame;
 
 import java.util.ArrayList;
 import java.util.Stack;
 
-public class MazeGenerator {
+public class Maze {
 
+    private int length, height;
     private Node[][] nodes;
 
-    int[] moveX = {0, 1, 0, -1};
-    int[] moveY = {-1, 0, 1, 0};
+    private final int[] moveX = {0, 1, 0, -1}; // top, right, bottom, left
+    private final int[] moveY = {-1, 0, 1, 0};
 
-    public MazeGenerator(int length, int height) {
+    public Maze(int length, int height) {
         nodes = new Node[height][length];
 
         for (int i = 0; i < nodes.length; i++) {
@@ -19,15 +20,20 @@ public class MazeGenerator {
             }
         }
 
-        backTrack_DFS();
+        gen_backtrack_DFS();
     }
 
-    public void backTrack_DFS() {
+    public Node[][] getNodes() {
+        return nodes;
+    }
+
+    public void gen_backtrack_DFS() {
 
         Stack<Node> stack = new Stack<>();
 
         Node current = nodes[0][0];
         current.visited = true;
+        current.walls[0] = false;
 
         while (true) {
 
@@ -48,6 +54,10 @@ public class MazeGenerator {
 
             neighbour.visited = true;
             current = neighbour;
+
+            if (current.x == (nodes[0].length - 1) && current.y == (nodes.length - 1)) {
+                current.walls[2] = false;
+            }
         }
     }
 
@@ -59,6 +69,26 @@ public class MazeGenerator {
             int x = current.x + moveX[i], y = current.y + moveY[i];
 
             if (inBound(x, y) && !nodes[y][x].visited) unvisited.add(nodes[y][x]);
+        }
+
+        if (unvisited.size() == 0) {
+            return null;
+        } else {
+            int randIdx = (int) Math.floor(Math.random() * unvisited.size());
+            return unvisited.get(randIdx);
+        }
+    }
+
+    public Node getANeighbourPath (Node current) {
+
+        ArrayList<Node> unvisited = new ArrayList<>();
+
+        for (int i = 0; i < moveX.length; i++) { // Get all unvisited nodes.
+            int x = current.x + moveX[i], y = current.y + moveY[i];
+
+            if (inBound(x, y) && !nodes[y][x].visited && !current.walls[i]) {
+                unvisited.add(nodes[y][x]);
+            }
         }
 
         if (unvisited.size() == 0) {

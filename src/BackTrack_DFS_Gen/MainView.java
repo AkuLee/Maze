@@ -15,23 +15,23 @@ import java.util.Stack;
 
 public class MainView extends Application {
 
-    Color unchecked = Color.rgb(150, 150, 150),
-          currentlyChecking = Color.rgb(150, 150, 255),
-          alreadyChecked = Color.rgb(100, 150, 100),
-          previouslyChecked = Color.rgb(100, 100, 175);
+    static Color unchecked = Color.rgb(150, 150, 150),
+                 currentlyChecking = Color.rgb(150, 150, 255),
+                 alreadyChecked = Color.rgb(100, 150, 100),
+                 previouslyChecked = Color.rgb(100, 100, 175);
 
-    Stack<Node> stack;
-    Node[][] nodes = new Node[60][125];
-    Node current;
+    Stack<NodeGen> stack;
+    NodeGen[][] nodes = new NodeGen[60][125];
+    NodeGen current;
 
     Pane root;
     GraphicsContext context;
-    int length = 10;
+    int size = 10;
 
     @Override
     public void start(Stage stage) throws Exception {
 
-        Canvas canvas = new Canvas(length * nodes[0].length, length * nodes.length);
+        Canvas canvas = new Canvas(size * nodes[0].length, size * nodes.length);
         root = new Pane(canvas);
 
         setup(canvas);
@@ -90,7 +90,7 @@ public class MainView extends Application {
 
         for (int i = 0; i < nodes.length; i++) {
             for (int j = 0; j < nodes[0].length; j++) {
-                nodes[i][j] = new Node(length, j, i);
+                nodes[i][j] = new NodeGen(size, j, i);
                 nodes[i][j].show(context, unchecked);
             }
         }
@@ -102,7 +102,7 @@ public class MainView extends Application {
 
     public void oneStepGenerator() {
 
-        Node neighbour = getANeighbour(current);
+        NodeGen neighbour = getANeighbour(current);
 
         if (neighbour == null) {
 
@@ -119,7 +119,7 @@ public class MainView extends Application {
         }
 
         stack.push(current);
-        Node.removeCommonWall(current, neighbour);
+        NodeGen.removeCommonWall(current, neighbour);
 
         current.show(context, previouslyChecked);
         neighbour.show(context, currentlyChecking);
@@ -128,12 +128,12 @@ public class MainView extends Application {
         current = neighbour;
     }
 
-    public Node getANeighbour(Node current) {
+    public NodeGen getANeighbour(NodeGen current) {
 
         int[] moveX = {0, 1, 0, -1};
         int[] moveY = {-1, 0, 1, 0};
 
-        ArrayList<Node> unvisited = new ArrayList<>();
+        ArrayList<NodeGen> unvisited = new ArrayList<>();
 
         for (int i = 0; i < moveX.length; i++) { // Get all unvisited nodes.
             int x = current.x + moveX[i], y = current.y + moveY[i];

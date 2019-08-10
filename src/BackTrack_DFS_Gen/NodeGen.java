@@ -3,7 +3,7 @@ package BackTrack_DFS_Gen;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class Node {
+public class NodeGen {
 
     int length;
 
@@ -12,7 +12,7 @@ public class Node {
 
     boolean[] walls;
 
-    public Node(int length, int x, int y) {
+    public NodeGen(int length, int x, int y) {
         this.length = length;
         this.x = x;
         this.y = y;
@@ -46,7 +46,7 @@ public class Node {
 
     }
 
-    public static void removeCommonWall(Node n1, Node n2) {
+    public static void removeCommonWall(NodeGen n1, NodeGen n2) {
         int compX = n1.x - n2.x;
         int compY = n1.y - n2.y;
 
