@@ -59,7 +59,7 @@ public class View extends Application {
         Text    first = new Text("Length: "),
                 snd = new Text("Height: ");
 
-        // --- Spinner settings --- todo change textfield to scroller
+        // --- Spinner settings ---
         Spinner lengthText = new Spinner(5, 115, 100),
                 heightText = new Spinner(5, 70, 60);
 
@@ -72,8 +72,15 @@ public class View extends Application {
 
         Button dfsSolve = new Button("Solve with DFS");
         dfsSolve.setOnAction( event -> {
-            controller.solve();
+            controller.solveDFS();
         });
+
+        Button bfsSolve = new Button("Solve with BFS");
+        bfsSolve.setOnAction( event -> {
+            controller.solveBFS();
+        });
+
+        // todo djisktra, a*, sample, random mouse, wall follower, pledge, trémaux, dead-end filling, recursive, maze-routing, shortestpath
 
         Button clear = new Button("Clear path");
         clear.setOnAction( event -> {
@@ -108,7 +115,7 @@ public class View extends Application {
         });
 
         // Side menu
-        VBox side = new VBox(header, firstLine, sndLine, anotherMaze, dfsSolve, clear);
+        VBox side = new VBox(header, firstLine, sndLine, anotherMaze, dfsSolve, bfsSolve, clear);
         side.setAlignment(Pos.TOP_CENTER);
         side.setPrefHeight(canvas.getHeight());
         side.setPrefWidth(300);

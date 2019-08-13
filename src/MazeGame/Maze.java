@@ -1,6 +1,7 @@
 package MazeGame;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Stack;
 
 public class Maze {
@@ -8,8 +9,8 @@ public class Maze {
     private int length, height;
     private Node[][] nodes;
 
-    private final int[] moveX = {0, 1, 0, -1}; // top, right, bottom, left
-    private final int[] moveY = {-1, 0, 1, 0};
+    public static final int[] moveX = {0, 1, 0, -1}; // top, right, bottom, left
+    public static final int[] moveY = {-1, 0, 1, 0};
 
     public Maze(int length, int height) {
         nodes = new Node[height][length];
@@ -61,6 +62,29 @@ public class Maze {
         }
     }
 
+    public void bfs_solve() {
+        LinkedList<Node> queue = new LinkedList<>();
+        Node current = nodes[0][0];
+        current.visited = true;
+        queue.addLast(current);
+
+        while (!queue.isEmpty()) {
+            current = queue.removeFirst();
+
+            if (current.x == nodes[0].length - 1 && current.y == nodes.length - 1) {
+                return;
+            }
+
+            ArrayList<Node> neighbours = getNeighbours(current);
+            for (Node neighbour : neighbours) {
+                neighbour.visited = true;
+                neighbour.parent = current;
+                queue.addLast(neighbour);
+            }
+        }
+
+    }
+
     public Node getANeighbour (Node current) {
 
         ArrayList<Node> unvisited = new ArrayList<>();
@@ -77,6 +101,23 @@ public class Maze {
             int randIdx = (int) Math.floor(Math.random() * unvisited.size());
             return unvisited.get(randIdx);
         }
+    }
+
+    public ArrayList<Node> getNeighbours(Node current) {
+
+        ArrayList<Node> neighbours = new ArrayList<>();
+
+        for (int i = 0; i < 4; i++) {
+            int x = current.x + Maze.moveX[i];
+            int y = current.y + Maze.moveY[i];
+
+            // in-bound, and side of this current is open, and neighbour not visited.
+            if (inBound(x, y) && !current.walls[i] && !nodes[y][x].visited) {
+                neighbours.add(nodes[y][x]);
+            }
+        }
+
+        return neighbours;
     }
 
     public Node getANeighbourPath (Node current) {

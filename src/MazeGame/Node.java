@@ -9,6 +9,8 @@ public class Node {
 
     boolean[] walls;
 
+    Node parent = null;
+
     public Node(int length, int x, int y) {
         this.length = length;
         this.x = x;

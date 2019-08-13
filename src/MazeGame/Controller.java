@@ -5,6 +5,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Stack;
 
 public class Controller {
@@ -24,6 +26,9 @@ public class Controller {
         setup();
     }
 
+    /**
+     * Sets up the maze, the player square
+     */
     public void setup() {
         Node[][] nodes = maze.getNodes();
 
@@ -36,6 +41,10 @@ public class Controller {
         showPlayer();
     }
 
+    /**
+     * Method that updates a player move if up, down, left or right arrows are pressed.
+     * @param keyCode the keycode
+     */
     public void updatePlayer(KeyCode keyCode) {
 
         Node node = maze.getNodes()[player.getY()][player.getX()];
@@ -75,6 +84,9 @@ public class Controller {
         showPlayer();
     }
 
+    /**
+     * Method to show the player as a small square shape
+     */
     public void showPlayer() {
         view.context.setFill(view.player);
         view.context.fillRect(
@@ -83,10 +95,19 @@ public class Controller {
                 view.size * 0.5, view.size * 0.5);
     }
 
+    /**
+     * Remove player from the current position by filling the cell it is on with the background color
+     */
     public void clearPlayer() {
         showNode(maze.getNodes()[player.getY()][player.getX()], view.offset, view.ground);
     }
 
+    /**
+     * Method shows a node on the GUI according to the color
+     * @param node a Node
+     * @param offset the offset for the grid
+     * @param color the color of the node
+     */
     public void showNode(Node node, int offset, Color color) {
 
         GraphicsContext context = view.context;
@@ -120,9 +141,27 @@ public class Controller {
 
     }
 
-    public void solve() {
+    /**
+     * Method to reset all nodes to unvisited so we can solve the maze.
+     */
+    public void resetSolve() {
+        Node[][] nodes = maze.getNodes();
 
-        setUnvisited();
+        for (int i = 0; i < nodes.length; i++) {
+            for (int j = 0; j < nodes[0].length; j++) {
+                nodes[i][j].visited = false;
+                nodes[i][j].parent = null;
+            }
+        }
+    }
+
+    /**
+     * Method solves the maze with dfs backtracking algorithm and animates it with an animation timer. Each call showing
+     * one whole step of the algorithm.
+     */
+    public void solveDFS() {
+
+        resetSolve();
 
         AnimationTimer timer = new AnimationTimer() {
             double timeAcc = 0;
@@ -161,8 +200,8 @@ public class Controller {
                 timeAcc += ((now - lastTime)/1000);
                 lastTime = now;
 
-                if (timeAcc >= trigger) {
-                    Object[] next = oneStep(current, stack);
+                if (timeAcc >= trigger) { // Delay and limit frame animation gap
+                    Object[] next = oneStepDFS(current, stack);
                     current = (Node) next[0];
                     stack = (Stack<Node>) next[1];
 
@@ -178,24 +217,20 @@ public class Controller {
         timer.start();
     }
 
-    public void setUnvisited() {
-        Node[][] nodes = maze.getNodes();
+    /**
+     * Method for simulating a one-step of the dfs backtrack algorithm in adaptation to the use of the animation timer.
+     * @param current the currently checked node
+     * @param stack the stack for the algorithm
+     * @return an array of size 2 containing the new current node and the new state of the stack.
+     */
+    public Object[] oneStepDFS(Node current, Stack<Node> stack) {
 
-        for (int i = 0; i < nodes.length; i++) {
-            for (int j = 0; j < nodes[0].length; j++) {
-                nodes[i][j].visited = false;
-            }
-        }
-    }
+        Node neighbour = maze.getANeighbourPath(current); // Find an unvisited neighbour.
 
-    public Object[] oneStep(Node current, Stack<Node> stack) {
+        if (neighbour == null) { // If no neighbours.
 
-        Node neighbour = maze.getANeighbourPath(current);
-
-        if (neighbour == null) {
-
-            if (!stack.empty()) {
-                showNode(current, view.offset, view.wrongPathing);
+            if (!stack.empty()) { // Pop and backtrack on previous visited node.
+                //showNode(current, view.offset, view.wrongPathing); for visualibility
 
                 current = stack.pop();
                 showNode(current, view.offset, view.currentlyChecking);
@@ -206,14 +241,99 @@ public class Controller {
             return new Object[] {current, stack};
         }
 
-        stack.push(current);
+        stack.push(current); // Check next neighbour.
 
-        showNode(current, view.offset, view.currentlyPathing);
+        // showNode(current, view.offset, view.currentlyPathing); for visualibility
+        showNode(current, view.offset, view.currentlyChecking);
         showNode(neighbour, view.offset, view.currentlyChecking);
 
         neighbour.visited = true;
         current = neighbour;
 
         return new Object[] {current, stack};
+    }
+
+    /**
+     * Method that solves the maze with bfs algorithm.
+     * @see Maze#bfs_solve()
+     */
+    public void solveBFS() {
+
+        resetSolve();
+
+        AnimationTimer timer = new AnimationTimer() {
+            double timeAcc = 0;
+            long lastTime = 0;
+
+            boolean first = true;
+            boolean done = false;
+
+            LinkedList<Node> queue;
+            Node current;
+
+            double trigger = 10000; // Delay in animation
+
+            @Override
+            public void handle(long now) {
+
+                if (done) { // If maze is solved
+
+                    showNode(current, view.offset, view.solved);
+                    if (current.parent != null) {
+                        current = current.parent;
+                    }
+
+                    return;
+                }
+
+                if (first) { // Setup
+                    lastTime = now;
+                    first = false;
+
+                    queue = new LinkedList<>();
+                    current = maze.getNodes()[0][0];
+                    current.visited = true;
+                    queue.addLast(current);
+                }
+
+                timeAcc += ((now - lastTime)/1000);
+                lastTime = now;
+
+                if (timeAcc >= trigger) { // Delay and limit frame animation gap
+
+                    current = queue.removeFirst();
+
+                    if (current.x == maze.getNodes()[0].length - 1 && current.y == maze.getNodes().length - 1) {
+                        done = true;
+                        return;
+                    }
+
+                    queue = oneStepBFS(current, queue);
+                    timeAcc -= trigger;
+                }
+
+            }
+        };
+        timer.start();
+    }
+
+    /**
+     * Method that simulates one step of the bfs algorithm at a time.
+     * @param current currently evaluated node
+     * @param queue the current state of the queue
+     * @return the new state of the queue
+     */
+    public LinkedList<Node> oneStepBFS(Node current, LinkedList<Node> queue) {
+
+        showNode(current, view.offset, view.currentlyChecking);
+
+        ArrayList<Node> neighbours = maze.getNeighbours(current);
+        for (Node neighbour : neighbours) {
+            neighbour.visited = true;
+            neighbour.parent = current;
+            queue.addLast(neighbour);
+        }
+
+        return queue;
     }
 }
