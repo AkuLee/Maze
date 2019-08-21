@@ -21,7 +21,7 @@ public class View extends Application {
 
     int size = 10;
 
-    int length = 100, height = 60;
+    int length = 60, height = 60;
 
     static Color ground = Color.rgb(125, 125, 125),
                  wall = Color.rgb(65, 50, 125),
@@ -60,8 +60,8 @@ public class View extends Application {
                 snd = new Text("Height: ");
 
         // --- Spinner settings ---
-        Spinner lengthText = new Spinner(5, 115, 100),
-                heightText = new Spinner(5, 70, 60);
+        Spinner lengthText = new Spinner(5, 115, length),
+                heightText = new Spinner(5, 70, height);
 
         lengthText.setPrefSize(75, 30);
         heightText.setPrefSize(75, 30);
@@ -80,7 +80,17 @@ public class View extends Application {
             controller.solveBFS();
         });
 
-        // todo djisktra, a*, sample, random mouse, wall follower, pledge, trémaux, dead-end filling, recursive, maze-routing, shortestpath
+        Button aStarSolve = new Button("Solve with A*");
+        aStarSolve.setOnAction( event -> {
+            controller.solveAStar();
+        });
+
+        Button dijkstraSolve = new Button("Solve with Dijkstra");
+        dijkstraSolve.setOnAction( event -> {
+            controller.solveDijkstra();
+        });
+
+        // todo sample, random mouse, wall follower, pledge, trémaux, dead-end filling, recursive, maze-routing, shortestpath
 
         Button clear = new Button("Clear path");
         clear.setOnAction( event -> {
@@ -106,7 +116,8 @@ public class View extends Application {
             controller.setup();
 
             // Side menu
-            VBox side = new VBox(header, firstLine, sndLine, anotherMaze, dfsSolve, clear);
+            VBox side = new VBox(header, firstLine, sndLine, anotherMaze,
+                    dfsSolve, bfsSolve, aStarSolve, dijkstraSolve, clear);
             side.setAlignment(Pos.TOP_CENTER);
             side.setPrefHeight(canvas.getHeight());
             side.setPrefWidth(300);
@@ -115,7 +126,8 @@ public class View extends Application {
         });
 
         // Side menu
-        VBox side = new VBox(header, firstLine, sndLine, anotherMaze, dfsSolve, bfsSolve, clear);
+        VBox side = new VBox(header, firstLine, sndLine, anotherMaze,
+                dfsSolve, bfsSolve, aStarSolve, dijkstraSolve, clear);
         side.setAlignment(Pos.TOP_CENTER);
         side.setPrefHeight(canvas.getHeight());
         side.setPrefWidth(300);

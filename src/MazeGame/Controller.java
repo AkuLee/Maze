@@ -5,9 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Stack;
+import java.util.*;
 
 public class Controller {
 
@@ -151,6 +149,8 @@ public class Controller {
             for (int j = 0; j < nodes[0].length; j++) {
                 nodes[i][j].visited = false;
                 nodes[i][j].parent = null;
+                nodes[i][j].fScore = Double.MAX_VALUE;
+                nodes[i][j].gScore = Double.MAX_VALUE;
             }
         }
     }
@@ -243,8 +243,7 @@ public class Controller {
 
         stack.push(current); // Check next neighbour.
 
-        // showNode(current, view.offset, view.currentlyPathing); for visualibility
-        showNode(current, view.offset, view.currentlyChecking);
+        showNode(current, view.offset, view.currentlyPathing);
         showNode(neighbour, view.offset, view.currentlyChecking);
 
         neighbour.visited = true;
@@ -301,6 +300,7 @@ public class Controller {
 
                 if (timeAcc >= trigger) { // Delay and limit frame animation gap
 
+                    showNode(current, view.offset, view.currentlyPathing);
                     current = queue.removeFirst();
 
                     if (current.x == maze.getNodes()[0].length - 1 && current.y == maze.getNodes().length - 1) {
@@ -335,5 +335,242 @@ public class Controller {
         }
 
         return queue;
+    }
+
+    public double heuristicAStar(Node a, Node b) {
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
+
+    public void solveAStar() {
+        resetSolve();
+
+        AnimationTimer timer = new AnimationTimer() {
+            double timeAcc = 0;
+            long lastTime = 0;
+
+            boolean first = true;
+            boolean done = false;
+
+            ArrayList<Node> openSet = new ArrayList<>(),
+                            closedSet = new ArrayList<>();
+
+            Node current;
+
+            Node[][] nodes = maze.getNodes();
+            Node start = nodes[0][0];
+            Node end = nodes[nodes.length - 1][nodes[0].length - 1];
+
+            double trigger = 10000; // Delay in animation
+
+            @Override
+            public void handle(long now) {
+
+                if (done) { // If maze is solved
+
+                    showNode(current, view.offset, view.solved);
+                    if (current.parent != null) {
+                        current = current.parent;
+                    }
+
+                    return;
+                }
+
+                if (first) { // Setup
+                    lastTime = now;
+                    first = false;
+
+                    openSet.add(start);
+                    start.fScore = 0;
+                    start.gScore = heuristicAStar(start, end);
+                }
+
+                timeAcc += ((now - lastTime)/1000);
+                lastTime = now;
+
+                if (timeAcc >= trigger) { // Delay and limit frame animation gap
+
+                    timeAcc -= trigger;
+
+                    if (openSet.isEmpty()) {
+                        done = true;
+                        return;
+                    }
+
+                    current = findBestFScore(openSet);
+
+                    if (current == end) {
+                        done = true;
+                        return;
+                    }
+
+                    oneStepAStar(current, end, openSet, closedSet);
+                    oneStepAStarShow(openSet, closedSet);
+                }
+
+            }
+        };
+        timer.start();
+    }
+
+    public Node findBestFScore(ArrayList<Node> openSet) {
+        Node best = null;
+        for (Node node : openSet) {
+            if (best == null) {
+                best = node;
+            }
+
+            else if (node.fScore < best.fScore) {
+                best = node;
+            }
+        }
+
+        return best;
+    }
+
+    public void oneStepAStarShow(ArrayList<Node> openSet, ArrayList<Node> closedSet) {
+        for (Node node : openSet) {
+            showNode(node, view.offset, view.currentlyChecking);
+        }
+
+        for (Node node : closedSet) {
+            showNode(node, view.offset, view.currentlyPathing);
+        }
+    }
+
+    public void oneStepAStar(Node current, Node end, ArrayList<Node> openSet, ArrayList<Node> closedSet) {
+        openSet.remove(current);
+        closedSet.add(current);
+
+        ArrayList<Node> neighbours = maze.getNeighbours(current);
+        if (neighbours.isEmpty()) {
+            showNode(current, view.offset, view.wrongPathing);
+        }
+        for (Node neighbour : neighbours) {
+            if (closedSet.contains(neighbour)) {
+                continue;
+            }
+
+            double tempGScore = current.gScore + 1;
+
+            if (!openSet.contains(neighbour)) {
+                openSet.add(neighbour);
+            }
+
+            if (tempGScore < neighbour.gScore) {
+                neighbour.parent = current;
+                neighbour.gScore = tempGScore;
+                neighbour.fScore = neighbour.gScore + heuristicAStar(neighbour, end);
+            }
+        }
+    }
+
+    public Node findMinDistFromStart(ArrayList<Node> queue) {
+        Node bestMin = null;
+
+        for (int i = 0; i < queue.size(); i++) {
+            if (bestMin == null) {
+                bestMin = queue.get(i);
+            }
+
+            if (queue.get(i).gScore < bestMin.gScore) {
+                bestMin =  queue.get(i);
+            }
+        }
+
+        return bestMin;
+    }
+
+    public void solveDijkstra() {
+        resetSolve();
+
+        AnimationTimer timer = new AnimationTimer() {
+            double timeAcc = 0;
+            long lastTime = 0;
+
+            boolean first = true;
+            boolean done = false;
+
+            ArrayList<Node> queue = new ArrayList<>();
+
+            Node[][] nodes = maze.getNodes();
+            Node end = nodes[nodes.length - 1][nodes[0].length - 1];
+            Node current = nodes[0][0];
+
+            double trigger = 10000; // Delay in animation
+
+            @Override
+            public void handle(long now) {
+
+                if (done) { // If maze is solved
+
+                    showNode(current, view.offset, view.solved);
+                    if (current.parent != null) {
+                        current = current.parent;
+                    }
+
+                    return;
+                }
+
+                if (first) { // Setup
+                    lastTime = now;
+                    first = false;
+
+                    current.gScore = 0;
+                    queue.add(current);
+                }
+
+                timeAcc += ((now - lastTime)/1000);
+                lastTime = now;
+
+                if (timeAcc >= trigger) { // Delay and limit frame animation gap
+
+                    timeAcc -= trigger;
+
+                    if (queue.isEmpty()) {
+                        //System.out.println("Queue is empty");
+                        done = true;
+                        return;
+                    }
+
+                    current = findMinDistFromStart(queue);
+                    current.visited = true;
+                    showNode(current, view.offset, view.currentlyPathing);
+
+                    if (current == end) {
+                        //System.out.println("Solution found");
+                        done = true;
+                        return;
+                    }
+
+                    oneStepDijkstra(current, queue);
+                }
+
+            }
+        };
+        timer.start();
+    }
+
+    public void oneStepDijkstra(Node current, ArrayList<Node> queue) {
+        queue.remove(current);
+
+        ArrayList<Node> neighbours = maze.getNeighbours(current);
+
+        for (Node neighbour : neighbours) {
+            if (neighbour.visited) {
+                continue;
+            }
+
+            showNode(neighbour, view.offset, view.currentlyChecking);
+
+            double tempDist = current.gScore + 1;
+            if (tempDist < neighbour.gScore) {
+                neighbour.gScore = tempDist;
+                neighbour.parent = current;
+                if (!queue.contains(neighbour)) {
+                    queue.add(neighbour);
+                    //System.out.println("Add to queue");
+                }
+            }
+        }
     }
 }

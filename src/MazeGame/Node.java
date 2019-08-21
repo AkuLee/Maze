@@ -7,6 +7,9 @@ public class Node {
     int x, y;
     boolean visited;
 
+    // gScore is distance from start and fScore is heuristic distance from start to end from this node.
+    double fScore = Double.MAX_VALUE, gScore = Double.MAX_VALUE;
+
     boolean[] walls;
 
     Node parent = null;
