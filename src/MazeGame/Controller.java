@@ -48,6 +48,7 @@ public class Controller {
         Node node = maze.getNodes()[player.getY()][player.getX()];
         clearPlayer();
 
+        // Check if pathable and in-bound
         switch(keyCode) {
             case UP:
                 if (!node.walls[0] && (player.getY() - 1) >= 0) {
@@ -117,6 +118,7 @@ public class Controller {
         context.setStroke(view.wall);
         context.setLineWidth(2);
 
+        // If there's a wall, draw line.
         if (node.walls[0]) { // top
             context.strokeLine(nodeX + offset, nodeY + offset,
                     nodeX + view.size + offset, nodeY + offset);
@@ -167,8 +169,8 @@ public class Controller {
             double timeAcc = 0;
             long lastTime = 0;
 
-            boolean first = true;
-            boolean done = false;
+            boolean first = true; // Setup
+            boolean done = false; // Solved
 
             Stack<Node> stack;
             Node current;
@@ -201,10 +203,14 @@ public class Controller {
                 lastTime = now;
 
                 if (timeAcc >= trigger) { // Delay and limit frame animation gap
+
                     Object[] next = oneStepDFS(current, stack);
+
+                    // Update state of current node and stack
                     current = (Node) next[0];
                     stack = (Stack<Node>) next[1];
 
+                    // If solved.
                     if (current.x == maze.getNodes()[0].length - 1 && current.y == maze.getNodes().length - 1) {
                         done = true;
                     }
@@ -337,10 +343,19 @@ public class Controller {
         return queue;
     }
 
+    /**
+     * Method that computes an approximation of the distance between a and b. The heuristic in the a* algorithm.
+     * @param a node a
+     * @param b node b
+     * @return an approximation of the distance between a and b
+     */
     public double heuristicAStar(Node a, Node b) {
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
 
+    /**
+     * Method that solves a maze with a* algorithm, adopted for animation with AnimationTimer.
+     */
     public void solveAStar() {
         resetSolve();
 
@@ -391,20 +406,20 @@ public class Controller {
 
                     timeAcc -= trigger;
 
-                    if (openSet.isEmpty()) {
+                    if (openSet.isEmpty()) { // Impossible
                         done = true;
                         return;
                     }
 
-                    current = findBestFScore(openSet);
+                    current = findBestFScore(openSet); // Find node with best f score
 
-                    if (current == end) {
+                    if (current == end) { // Solved
                         done = true;
                         return;
                     }
 
-                    oneStepAStar(current, end, openSet, closedSet);
-                    oneStepAStarShow(openSet, closedSet);
+                    oneStepAStar(current, end, openSet, closedSet); // Update state of solution
+                    oneStepAStarShow(openSet, closedSet); // Update display of solution
                 }
 
             }
@@ -412,6 +427,11 @@ public class Controller {
         timer.start();
     }
 
+    /**
+     * Method for a* algorithm. Finds the node with the best f score in the open set.
+     * @param openSet ArrayList<Node>
+     * @return Node
+     */
     public Node findBestFScore(ArrayList<Node> openSet) {
         Node best = null;
         for (Node node : openSet) {
@@ -427,6 +447,11 @@ public class Controller {
         return best;
     }
 
+    /**
+     * Method updates solution of maze with a* algorithm
+     * @param openSet ArrayList<Node> currently visiting nodes
+     * @param closedSet ArrayList<Node> previously visited nodes
+     */
     public void oneStepAStarShow(ArrayList<Node> openSet, ArrayList<Node> closedSet) {
         for (Node node : openSet) {
             showNode(node, view.offset, view.currentlyChecking);
@@ -437,14 +462,26 @@ public class Controller {
         }
     }
 
+    /**
+     *
+     * @param current the currently evaluated node
+     * @param end the target exit
+     * @param openSet ArrayList<Node> currently visited nodes
+     * @param closedSet ArrayList<Node> previously visited nodes
+     */
     public void oneStepAStar(Node current, Node end, ArrayList<Node> openSet, ArrayList<Node> closedSet) {
+        // Current is now previously visited.
         openSet.remove(current);
         closedSet.add(current);
 
+        // Find neighbours of current.
         ArrayList<Node> neighbours = maze.getNeighbours(current);
         if (neighbours.isEmpty()) {
             showNode(current, view.offset, view.wrongPathing);
         }
+
+        // For every neighbour, update gscore and fscore and parent node if needed. If not previously visited node,
+        // good to check and possibly update data.
         for (Node neighbour : neighbours) {
             if (closedSet.contains(neighbour)) {
                 continue;
@@ -464,15 +501,20 @@ public class Controller {
         }
     }
 
-    public Node findMinDistFromStart(ArrayList<Node> queue) {
+    /**
+     * Method will find the node with the minimal distance from the starting node in the queue.
+     * @param queue ArrayLis of nodes
+     * @return a node
+     */
+    public Node findBestMinDistFromStart(ArrayList<Node> queue) {
         Node bestMin = null;
 
         for (int i = 0; i < queue.size(); i++) {
-            if (bestMin == null) {
+            if (bestMin == null) { // Initialize
                 bestMin = queue.get(i);
             }
 
-            if (queue.get(i).gScore < bestMin.gScore) {
+            if (queue.get(i).gScore < bestMin.gScore) { // Update if found a better candidate.
                 bestMin =  queue.get(i);
             }
         }
@@ -480,6 +522,9 @@ public class Controller {
         return bestMin;
     }
 
+    /**
+     * Method that solves a maze with djikstra algorithm, adopted for animation with AnimationTimer.
+     */
     public void solveDijkstra() {
         resetSolve();
 
@@ -526,23 +571,23 @@ public class Controller {
 
                     timeAcc -= trigger;
 
-                    if (queue.isEmpty()) {
+                    if (queue.isEmpty()) { // Impossible solution
                         //System.out.println("Queue is empty");
                         done = true;
                         return;
                     }
 
-                    current = findMinDistFromStart(queue);
+                    current = findBestMinDistFromStart(queue);
                     current.visited = true;
                     showNode(current, view.offset, view.currentlyPathing);
 
-                    if (current == end) {
+                    if (current == end) { // Solved
                         //System.out.println("Solution found");
                         done = true;
                         return;
                     }
 
-                    oneStepDijkstra(current, queue);
+                    oneStepDijkstra(current, queue); // Update state of solution
                 }
 
             }
@@ -550,11 +595,20 @@ public class Controller {
         timer.start();
     }
 
+    /**
+     * Method that updates the solution with dijkstra one step at a time to faciliate animation.
+     * @param current node
+     * @param queue arraylist of nodes
+     */
     public void oneStepDijkstra(Node current, ArrayList<Node> queue) {
+
         queue.remove(current);
 
+        // Neighbours
         ArrayList<Node> neighbours = maze.getNeighbours(current);
 
+        // For each unvisited neighbour, find the distance from current to neighbour. If new distance is better than
+        // original distance of neighbour, update distance.
         for (Node neighbour : neighbours) {
             if (neighbour.visited) {
                 continue;
@@ -562,14 +616,17 @@ public class Controller {
 
             showNode(neighbour, view.offset, view.currentlyChecking);
 
-            double tempDist = current.gScore + 1;
-            if (tempDist < neighbour.gScore) {
+            double tempDist = current.gScore + 1; // New distance
+            if (tempDist < neighbour.gScore) { // If better distance than original, update
+
                 neighbour.gScore = tempDist;
                 neighbour.parent = current;
-                if (!queue.contains(neighbour)) {
+
+                if (!queue.contains(neighbour)) { // If queue doesn't already contain the neighbour, add.
                     queue.add(neighbour);
                     //System.out.println("Add to queue");
                 }
+
             }
         }
     }

@@ -28,6 +28,9 @@ public class Maze {
         return nodes;
     }
 
+    /**
+     * Method generates a maze with backtracking DFS. Algorithm on Wikipedia.
+     */
     public void gen_backtrack_DFS() {
 
         Stack<Node> stack = new Stack<>();
@@ -38,8 +41,10 @@ public class Maze {
 
         while (true) {
 
+            // Choose a random unvisited neighbour
             Node neighbour = getANeighbour(current);
 
+            // If there is no more unvisited neighbours, backtrack and check the most recently visited node.
             if (neighbour == null) {
 
                 if (!stack.empty()) {
@@ -47,66 +52,88 @@ public class Maze {
                     continue;
                 }
 
-                return;
+                return; // If backtrack stack is empty, end the algorithm. We finished generating a maze.
             }
 
-            stack.push(current);
-            Node.removeCommonWall(current, neighbour);
+            stack.push(current); // Push node for backtracking.
+            Node.removeCommonWall(current, neighbour); // Remove the wall
 
-            neighbour.visited = true;
-            current = neighbour;
+            neighbour.visited = true; // The chosen neighbour is now visited
+            current = neighbour; // Evaluate this neighbour now
 
+            // If end point of maze (bottom right of right) is reached, default the removal of wall.
             if (current.x == (nodes[0].length - 1) && current.y == (nodes.length - 1)) {
                 current.walls[2] = false;
             }
         }
     }
 
+    /**
+     * Method solves a maze with BFS. Algorithm on Wikipedia
+     */
     public void bfs_solve() {
+
         LinkedList<Node> queue = new LinkedList<>();
+
+        // Starting point.
         Node current = nodes[0][0];
         current.visited = true;
+
         queue.addLast(current);
 
-        while (!queue.isEmpty()) {
-            current = queue.removeFirst();
+        while (!queue.isEmpty()) { // While queue is not empty
+            current = queue.removeFirst(); // Remove the next node to check
 
+            // If next node is the target exit, stop algorithm. Solution is found.
             if (current.x == nodes[0].length - 1 && current.y == nodes.length - 1) {
                 return;
             }
 
+            // For each of the next node's unvisited neighbours, add to the queue to check.
             ArrayList<Node> neighbours = getNeighbours(current);
             for (Node neighbour : neighbours) {
-                neighbour.visited = true;
-                neighbour.parent = current;
-                queue.addLast(neighbour);
+                neighbour.visited = true; // Visited.
+                neighbour.parent = current; // Keep track of which node we came from.
+                queue.addLast(neighbour); // Add to queue
             }
         }
 
     }
 
-    public Node getANeighbour (Node current) {
+    /**
+     * Method will find a random unvisited neighbours of the input node.
+     * @param current an instance of Node
+     * @return an instance of Node neighbour of current
+     */
+    public Node getANeighbour(Node current) {
 
         ArrayList<Node> unvisited = new ArrayList<>();
 
-        for (int i = 0; i < moveX.length; i++) { // Get all unvisited nodes.
+        // Get all unvisited nodes.
+        for (int i = 0; i < moveX.length; i++) {
             int x = current.x + moveX[i], y = current.y + moveY[i];
 
             if (inBound(x, y) && !nodes[y][x].visited) unvisited.add(nodes[y][x]);
         }
 
-        if (unvisited.size() == 0) {
+        if (unvisited.size() == 0) { // Return nothing
             return null;
-        } else {
+        } else { // Return a random node from the list.
             int randIdx = (int) Math.floor(Math.random() * unvisited.size());
             return unvisited.get(randIdx);
         }
     }
 
+    /**
+     * Method that will find all unvisited neighbours and return them in a list.
+     * @param current the node to evaluate
+     * @return the node's neighbours in a ArrayList<Node>
+     */
     public ArrayList<Node> getNeighbours(Node current) {
 
         ArrayList<Node> neighbours = new ArrayList<>();
 
+        // Four possible neighbours (no diagonal neighbours or pathing)
         for (int i = 0; i < 4; i++) {
             int x = current.x + Maze.moveX[i];
             int y = current.y + Maze.moveY[i];
@@ -120,6 +147,11 @@ public class Maze {
         return neighbours;
     }
 
+    /**
+     * Method finds a random unvisited neighbour that can be pathed to from current node.
+     * @param current an instance of Node
+     * @return a Node
+     */
     public Node getANeighbourPath (Node current) {
 
         ArrayList<Node> unvisited = new ArrayList<>();
@@ -132,14 +164,20 @@ public class Maze {
             }
         }
 
-        if (unvisited.size() == 0) {
+        if (unvisited.size() == 0) { // Return nothing
             return null;
-        } else {
+        } else { // Return a random node.
             int randIdx = (int) Math.floor(Math.random() * unvisited.size());
             return unvisited.get(randIdx);
         }
     }
 
+    /**
+     * Method checks if (x, y) is in-bound and respects array.
+     * @param x x position int
+     * @param y y position int
+     * @return true if in-bound. False otherwise
+     */
     public boolean inBound(int x, int y) {
         return 0 <= x && x < nodes[0].length && 0 <= y && y < nodes.length;
     }

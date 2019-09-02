@@ -125,7 +125,7 @@ public class View extends Application {
             stage.setScene(new Scene(new HBox(newCanvas, side)));
         });
 
-        // Side menu
+        // Side menu with buttons
         VBox side = new VBox(header, firstLine, sndLine, anotherMaze,
                 dfsSolve, bfsSolve, aStarSolve, dijkstraSolve, clear);
         side.setAlignment(Pos.TOP_CENTER);
